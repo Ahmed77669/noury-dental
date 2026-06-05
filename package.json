@@ -1,0 +1,19 @@
+{
+  "name": "dental-opportunities-egypt",
+  "version": "1.0.0",
+  "description": "Dental Opportunities Search Engine for Egypt - Monorepo",
+  "private": true,
+  "workspaces": [
+    "api",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=api",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "install:all": "npm install && npm install --workspace=api && npm install --workspace=frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

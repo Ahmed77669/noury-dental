@@ -1,0 +1,48 @@
+name: 🦷 Scrape & Update Opportunities
+
+on:
+  schedule:
+    # Run every 12 hours
+    - cron: '0 */12 * * *'
+  # Also allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests beautifulsoup4 python-dotenv
+
+      - name: Run live scraper
+        run: python scraper/live_crawl.py
+        env:
+          PYTHONIOENCODING: utf-8
+
+      - name: Check if opportunities.json changed
+        id: check_changes
+        run: |
+          git diff --exit-code frontend/src/app/data/opportunities.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push updated data
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "Noury Bot"
+          git config user.email "noury-bot@users.noreply.github.com"
+          git add frontend/src/app/data/opportunities.json
+          git commit -m "chore: update dental opportunities data [$(date +'%Y-%m-%d %H:%M')]"
+          git push
